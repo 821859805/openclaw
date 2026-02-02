@@ -1,0 +1,120 @@
+flowchart TD
+    Start([运行 package_skill.py<br/>skill-folder]) --> Load[加载 Skill 目录]
+    
+    Load --> CheckDir{目录<br/>存在?}
+    CheckDir -->|否| Error1[❌ 错误:<br/>目录不存在]
+    Error1 --> Exit([退出 code=1])
+    
+    CheckDir -->|是| CheckSkill{SKILL.md<br/>存在?}
+    CheckSkill -->|否| Error2[❌ 错误:<br/>缺少 SKILL.md]
+    Error2 --> Exit
+    
+    CheckSkill -->|是| Validate[验证阶段<br/>10项检查]
+    
+    Validate --> V1[✓ 检查1:<br/>YAML Frontmatter格式<br/>必须以 --- 开头结尾]
+    V1 --> V1OK{通过?}
+    V1OK -->|否| E1[❌ YAML格式错误]
+    E1 --> Exit
+    V1OK -->|是| V2
+    
+    V2[✓ 检查2:<br/>必需字段<br/>name + description]
+    V2 --> V2OK{通过?}
+    V2OK -->|否| E2[❌ 缺少必需字段]
+    E2 --> Exit
+    V2OK -->|是| V3
+    
+    V3[✓ 检查3:<br/>命名规范<br/>小写+连字符]
+    V3 --> V3OK{通过?}
+    V3OK -->|否| E3[❌ 命名不符合规范]
+    E3 --> Exit
+    V3OK -->|是| V4
+    
+    V4[✓ 检查4:<br/>name长度<br/>最大64字符]
+    V4 --> V4OK{通过?}
+    V4OK -->|否| E4[❌ 名称过长]
+    E4 --> Exit
+    V4OK -->|是| V5
+    
+    V5[✓ 检查5:<br/>目录名一致性<br/>目录名 == skill name]
+    V5 --> V5OK{通过?}
+    V5OK -->|否| W1[⚠️ 警告:<br/>目录名不一致]
+    W1 --> V6
+    V5OK -->|是| V6
+    
+    V6[✓ 检查6:<br/>description质量<br/>长度 > 50字符]
+    V6 --> V6OK{通过?}
+    V6OK -->|否| E6[❌ description过短]
+    E6 --> Exit
+    V6OK -->|是| V7
+    
+    V7[✓ 检查7:<br/>description完整性<br/>不包含TODO]
+    V7 --> V7OK{通过?}
+    V7OK -->|否| E7[❌ 包含TODO占位符]
+    E7 --> Exit
+    V7OK -->|是| V8
+    
+    V8[✓ 检查8:<br/>触发说明<br/>包含使用场景]
+    V8 --> V8OK{通过?}
+    V8OK -->|否| W2[⚠️ 警告:<br/>建议添加<br/>'Use when' 说明]
+    W2 --> V9
+    V8OK -->|是| V9
+    
+    V9[✓ 检查9:<br/>资源引用<br/>scripts/references被引用]
+    V9 --> V9OK{通过?}
+    V9OK -->|否| W3[⚠️ 警告:<br/>有未引用的资源]
+    W3 --> V10
+    V9OK -->|是| V10
+    
+    V10[✓ 检查10:<br/>Body内容<br/>非空且完整]
+    V10 --> V10OK{通过?}
+    V10OK -->|否| E10[❌ Body为空<br/>或包含TODO]
+    E10 --> Exit
+    V10OK -->|是| Summary
+    
+    Summary{验证结果}
+    Summary -->|有错误| ShowErr[显示所有错误]
+    ShowErr --> Exit
+    
+    Summary -->|只有警告<br/>或全通过| Package[打包阶段]
+    
+    Package --> Collect[收集所有文件:<br/>━━━━━━━━━━━<br/>✓ SKILL.md<br/>✓ scripts/<br/>✓ references/<br/>✓ assets/<br/>✓ 其他资源]
+    
+    Collect --> Compress[创建ZIP压缩包<br/>保持目录结构]
+    
+    Compress --> Rename[重命名为 .skill<br/>skill-name.skill]
+    
+    Rename --> Output{指定输出<br/>目录?}
+    Output -->|是| MoveTo[移动到<br/>指定目录]
+    Output -->|否| Current[保存到<br/>当前目录]
+    
+    MoveTo --> Success
+    Current --> Success
+    
+    Success[✅ 打包成功<br/>━━━━━━━━━━━<br/>显示:<br/>文件路径<br/>文件大小<br/>包含的资源] --> Exit0([退出 code=0])
+    
+    Checklist[验证清单总结]
+    Checklist --> C1[✅ 必须通过:<br/>━━━━━━━━━━━<br/>1. YAML格式正确<br/>2. 包含name+description<br/>3. 命名规范hyphen-case<br/>4. 长度不超过64字符<br/>6. description>50字符<br/>7. 无TODO占位符<br/>10. Body非空]
+    
+    Checklist --> C2[⚠️ 建议优化:<br/>━━━━━━━━━━━<br/>5. 目录名一致<br/>8. 说明触发场景<br/>9. 引用所有资源<br/>Body<500行]
+    
+    style Start fill:#e1f5e1
+    style Exit0 fill:#ccffcc
+    style Exit fill:#ffcccc
+    style Error1 fill:#ffcccc
+    style Error2 fill:#ffcccc
+    style E1 fill:#ffcccc
+    style E2 fill:#ffcccc
+    style E3 fill:#ffcccc
+    style E4 fill:#ffcccc
+    style E6 fill:#ffcccc
+    style E7 fill:#ffcccc
+    style E10 fill:#ffcccc
+    style W1 fill:#fff4cc
+    style W2 fill:#fff4cc
+    style W3 fill:#fff4cc
+    style Validate fill:#e1f0ff
+    style Package fill:#f0e1ff
+    style Success fill:#ccffcc
+    style Checklist fill:#ffffcc
+    style C1 fill:#ffcccc
+    style C2 fill:#fff4cc

@@ -1,0 +1,117 @@
+flowchart TD
+    Start([Agent启动/会话开始]) --> Scan[扫描 Skill 目录<br/>1. workspace/skills<br/>2. ~/.openclaw/skills<br/>3. bundled skills<br/>4. plugin skills]
+    
+    Scan --> Load[加载所有 SKILL.md<br/>解析 YAML Frontmatter]
+    
+    Load --> Merge[合并 Skills<br/>优先级:<br/>workspace > local > plugin > bundled]
+    
+    Merge --> Filter[过滤阶段<br/>6道关卡]
+    
+    Filter --> G1{关卡1<br/>平台检查}
+    G1 -->|metadata.openclaw.os| CheckOS{当前OS<br/>在列表中?}
+    CheckOS -->|否| Exclude1[❌ 排除]
+    CheckOS -->|是| G2
+    G1 -->|未指定| G2
+    
+    G2{关卡2<br/>二进制依赖}
+    G2 -->|requires.bins| CheckBins[所有二进制<br/>在PATH?]
+    CheckBins -->|缺少| Exclude2[❌ 排除]
+    CheckBins -->|全有| G3
+    G2 -->|requires.anyBins| CheckAny[至少一个<br/>在PATH?]
+    CheckAny -->|都无| Exclude2
+    CheckAny -->|有| G3
+    G2 -->|未指定| G3
+    
+    G3{关卡3<br/>环境变量}
+    G3 -->|requires.env| CheckEnv[所有环境变量<br/>存在?]
+    CheckEnv -->|缺少| Exclude3[❌ 排除]
+    CheckEnv -->|全有| G4
+    G3 -->|未指定| G4
+    
+    G4{关卡4<br/>配置检查}
+    G4 -->|requires.config| CheckConfig[配置路径<br/>为truthy?]
+    CheckConfig -->|有falsy| Exclude4[❌ 排除]
+    CheckConfig -->|全truthy| G5
+    G4 -->|未指定| G5
+    
+    G5{关卡5<br/>手动启用}
+    G5 -->|skills.entries<br/>.enabled| CheckEnabled{enabled<br/>== false?}
+    CheckEnabled -->|是| Exclude5[❌ 排除]
+    CheckEnabled -->|否| G6
+    G5 -->|未配置| G6
+    
+    G6{关卡6<br/>白名单}
+    G6 -->|bundled且<br/>有白名单| InList{在白名单<br/>中?}
+    InList -->|否| Exclude6[❌ 排除]
+    InList -->|是| Include
+    G6 -->|非bundled<br/>或无白名单| Include
+    
+    Include[✅ 通过所有关卡] --> Eligible[符合条件的<br/>Skills列表]
+    
+    Exclude1 --> Next
+    Exclude2 --> Next
+    Exclude3 --> Next
+    Exclude4 --> Next
+    Exclude5 --> Next
+    Exclude6 --> Next
+    Next{还有<br/>其他Skill?} -->|是| G1
+    Next -->|否| Eligible
+    
+    Eligible --> Snapshot[创建快照<br/>SkillSnapshot]
+    
+    Snapshot --> ApplyEnv[应用环境覆盖<br/>注入 env 和 apiKey]
+    
+    ApplyEnv --> BuildXML[构建 Skills XML<br/>&lt;skills count=N&gt;<br/>  &lt;skill&gt;<br/>    &lt;name&gt;...&lt;/name&gt;<br/>    &lt;description&gt;...&lt;/description&gt;<br/>    &lt;location&gt;...&lt;/location&gt;<br/>  &lt;/skill&gt;<br/>&lt;/skills&gt;]
+    
+    BuildXML --> Inject[注入到系统提示<br/>引导文件 + Skills XML]
+    
+    Inject --> Runtime[运行时]
+    
+    Runtime --> UserMsg[用户消息到达]
+    UserMsg --> Model[模型处理<br/>上下文含Skills]
+    
+    Model --> Decide{模型决策}
+    
+    Decide -->|触发Skill| Level2[Level 2加载<br/>读取 SKILL.md Body]
+    Level2 --> NeedRef{需要详细<br/>文档?}
+    NeedRef -->|是| Level3[Level 3加载<br/>AI读取 references/]
+    NeedRef -->|否| Execute
+    Level3 --> Execute
+    
+    Decide -->|使用Script| ExecScript[执行 scripts/<br/>可能不读取代码]
+    ExecScript --> Execute
+    
+    Decide -->|使用Asset| CopyAsset[复制/修改<br/>assets/文件]
+    CopyAsset --> Execute
+    
+    Decide -->|不用Skill| DirectReply[直接回复]
+    
+    Execute[执行任务] --> Restore[恢复原始环境<br/>移除注入的env]
+    Restore --> End
+    DirectReply --> End
+    
+    End([完成])
+    
+    Loading[三级披露机制]
+    Loading --> L1[Level 1: Metadata<br/>始终在上下文<br/>~100 words]
+    L1 --> L2[Level 2: Body<br/>触发时加载<br/>&lt;5000 words]
+    L2 --> L3[Level 3: References<br/>按需读取<br/>无限制]
+    
+    Snapshot -.-> Loading
+    
+    style Start fill:#e1f5e1
+    style End fill:#e1f5e1
+    style Filter fill:#fff4e1
+    style Exclude1 fill:#ffcccc
+    style Exclude2 fill:#ffcccc
+    style Exclude3 fill:#ffcccc
+    style Exclude4 fill:#ffcccc
+    style Exclude5 fill:#ffcccc
+    style Exclude6 fill:#ffcccc
+    style Include fill:#ccffcc
+    style Eligible fill:#ccffcc
+    style BuildXML fill:#e1f0ff
+    style Loading fill:#f0e1ff
+    style L1 fill:#e1f0ff
+    style L2 fill:#fff4e1
+    style L3 fill:#ffe1f0

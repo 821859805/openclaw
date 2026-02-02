@@ -1,0 +1,62 @@
+flowchart TD
+    Start{需要添加<br/>什么内容?} --> Q1{是否需要<br/>AI执行代码?}
+    
+    Q1 -->|是| Q1A{代码是否<br/>重复编写?}
+    Q1A -->|是| Scripts1[📁 scripts/<br/>━━━━━━━━━━━<br/>✓ 可直接执行<br/>✓ 不占用上下文<br/>✓ 可能需要时读取<br/>━━━━━━━━━━━<br/>示例:<br/>pdf/scripts/<br/>rotate_pdf.py<br/>fill_form.py]
+    Q1A -->|否| Code[✏️ 写在 SKILL.md<br/>━━━━━━━━━━━<br/>内联代码示例<br/>一次性使用]
+    
+    Q1 -->|否| Q2{是否需要<br/>详细文档?}
+    
+    Q2 -->|是| Q2A{文档长度?}
+    Q2A -->|>500行| Refs1[📁 references/<br/>━━━━━━━━━━━<br/>✓ 按需加载<br/>✓ 节省token<br/>✓ 在SKILL.md中引用<br/>━━━━━━━━━━━<br/>示例:<br/>bigquery/references/<br/>schema.md<br/>api_reference.md]
+    Q2A -->|<500行| Q2B{是否核心<br/>必读?}
+    Q2B -->|是| Inline1[✏️ 写在 SKILL.md<br/>━━━━━━━━━━━<br/>每次都加载<br/>核心必读内容]
+    Q2B -->|否| Refs1
+    
+    Q2 -->|否| Q3{是否用于<br/>输出?}
+    
+    Q3 -->|是| Q3A{什么类型<br/>文件?}
+    Q3A -->|模板| Assets1[📁 assets/<br/>━━━━━━━━━━━<br/>✓ 不加载到上下文<br/>✓ 用于输出<br/>━━━━━━━━━━━<br/>模板文件:<br/>.pptx, .docx<br/>HTML样板<br/>项目模板]
+    Q3A -->|图片/字体| Assets2[📁 assets/<br/>━━━━━━━━━━━<br/>✓ 不加载到上下文<br/>✓ 用于输出<br/>━━━━━━━━━━━<br/>视觉资源:<br/>.png, .svg<br/>.ttf, .woff<br/>logo, icons]
+    Q3A -->|样板代码| Assets3[📁 assets/<br/>━━━━━━━━━━━<br/>✓ 不加载到上下文<br/>✓ 用于输出<br/>━━━━━━━━━━━<br/>代码模板:<br/>hello-world/<br/>starter-files/<br/>boilerplate/]
+    
+    Q3 -->|否| Q4{是否是<br/>配置信息?}
+    
+    Q4 -->|是| Q4A{长度?}
+    Q4A -->|简短<br/><100行| FrontMatter[⚙️ Frontmatter<br/>━━━━━━━━━━━<br/>metadata.openclaw<br/>━━━━━━━━━━━<br/>requires:<br/>  bins, env<br/>  config<br/>os, primaryEnv]
+    Q4A -->|较长<br/>>100行| Refs2[📁 references/<br/>━━━━━━━━━━━<br/>配置参考文档]
+    
+    Q4 -->|否| Q5{是否是<br/>使用指南?}
+    
+    Q5 -->|是| Q5A{指南类型?}
+    Q5A -->|核心工作流| Body1[✏️ SKILL.md Body<br/>━━━━━━━━━━━<br/>主要使用方法<br/>基本工作流程<br/>常用操作]
+    Q5A -->|高级功能| Refs3[📁 references/<br/>━━━━━━━━━━━<br/>高级特性文档<br/>在主体中链接]
+    Q5A -->|API参考| Refs4[📁 references/<br/>━━━━━━━━━━━<br/>完整API文档<br/>方法参考]
+    
+    Q5 -->|否| Other[🤔 其他情况<br/>━━━━━━━━━━━<br/>根据具体情况<br/>选择最合适位置]
+    
+    Summary[📊 资源类型总结]
+    Summary --> Sum1[scripts/<br/>可执行脚本<br/>重复使用的代码]
+    Summary --> Sum2[references/<br/>参考文档<br/>按需加载]
+    Summary --> Sum3[assets/<br/>输出资源<br/>不加载到上下文]
+    Summary --> Sum4[SKILL.md Frontmatter<br/>元数据配置<br/>始终可见]
+    Summary --> Sum5[SKILL.md Body<br/>核心指令<br/>触发时加载]
+    
+    TokenCost[💰 Token消耗对比]
+    TokenCost --> T1[Level 1: Metadata<br/>~25 tokens/skill<br/>始终消耗]
+    TokenCost --> T2[Level 2: Body<br/>~1000 tokens<br/>触发时消耗]
+    TokenCost --> T3[Level 3: References<br/>按需消耗<br/>只在需要时]
+    
+    style Start fill:#e1f5e1
+    style Scripts1 fill:#e1f0ff
+    style Refs1 fill:#fff4e1
+    style Refs2 fill:#fff4e1
+    style Refs3 fill:#fff4e1
+    style Refs4 fill:#fff4e1
+    style Assets1 fill:#ffe1f0
+    style Assets2 fill:#ffe1f0
+    style Assets3 fill:#ffe1f0
+    style FrontMatter fill:#f0e1ff
+    style Body1 fill:#e1ffe1
+    style Summary fill:#ffffcc
+    style TokenCost fill:#ffcccc

@@ -1,0 +1,98 @@
+flowchart TD
+    Start([开始创建 Skill]) --> Step1[第1步: 理解需求<br/>收集3-5个具体示例]
+    
+    Step1 --> Examples[示例:<br/>用户会如何使用?<br/>何时触发?<br/>预期输入输出?]
+    
+    Examples --> Step2[第2步: 规划资源<br/>分析需要什么内容]
+    
+    Step2 --> Decision1{需要可执行<br/>脚本?}
+    Decision1 -->|是| Scripts[📁 scripts/<br/>Python/Bash脚本<br/>重复使用的代码]
+    Decision1 -->|否| Decision2
+    Scripts --> Decision2
+    
+    Decision2{需要参考<br/>文档?}
+    Decision2 -->|是| Refs[📁 references/<br/>API文档<br/>Schema定义<br/>详细指南]
+    Decision2 -->|否| Decision3
+    Refs --> Decision3
+    
+    Decision3{需要模板<br/>资源?}
+    Decision3 -->|是| Assets[📁 assets/<br/>模板文件<br/>图片字体<br/>样板代码]
+    Decision3 -->|否| Step3
+    Assets --> Step3
+    
+    Step3[第3步: 初始化<br/>运行 init_skill.py] --> Init[命令:<br/>init_skill.py skill-name<br/>--path ./skills<br/>--resources scripts,references<br/>--examples]
+    
+    Init --> Generated[自动生成:<br/>✓ skill-name/ 目录<br/>✓ SKILL.md 模板<br/>✓ 资源目录<br/>✓ 示例文件可选]
+    
+    Generated --> Step4[第4步: 编辑内容<br/>实现 Skill]
+    
+    Step4 --> EditFront[编辑 Frontmatter:<br/>name: skill-name<br/>description: 详细说明<br/>做什么+何时触发]
+    
+    EditFront --> EditBody[编辑 Body:<br/>选择结构模式]
+    
+    EditBody --> Structure{选择模式}
+    Structure -->|工作流式| S1[Overview → Workflow<br/>→ Step 1 → Step 2]
+    Structure -->|任务式| S2[Overview → Quick Start<br/>→ Task 1 → Task 2]
+    Structure -->|参考式| S3[Overview → Guidelines<br/>→ Specifications]
+    Structure -->|能力式| S4[Overview → Capabilities<br/>→ Feature 1 → Feature 2]
+    
+    S1 --> Implement
+    S2 --> Implement
+    S3 --> Implement
+    S4 --> Implement
+    
+    Implement[实现资源:<br/>编写scripts脚本<br/>编写references文档<br/>准备assets资源]
+    
+    Implement --> Step5[第5步: 打包<br/>运行 package_skill.py]
+    
+    Step5 --> Validate[自动验证10项:<br/>✓ YAML格式<br/>✓ name/description<br/>✓ 命名规范<br/>✓ description质量<br/>✓ 资源引用<br/>✓ Body内容<br/>等...]
+    
+    Validate --> Valid{验证<br/>通过?}
+    Valid -->|否| ShowErrors[显示错误<br/>需要修复]
+    ShowErrors --> Step4
+    
+    Valid -->|是| Package[生成 .skill 文件<br/>skill-name.skill<br/>ZIP格式]
+    
+    Package --> Step6[第6步: 迭代<br/>测试和优化]
+    
+    Step6 --> Test[在真实任务中测试]
+    Test --> Works{工作<br/>正常?}
+    
+    Works -->|否| Analyze[分析问题:<br/>触发不准?<br/>指令不清?<br/>缺少资源?<br/>Token过高?]
+    Analyze --> Step4
+    
+    Works -->|是| Monitor[持续监控]
+    Monitor --> Improve{需要<br/>改进?}
+    Improve -->|是| Step4
+    Improve -->|否| Success([✅ Skill创建完成])
+    
+    Loading[加载机制<br/>三级披露]
+    Loading --> L1[Level 1: Metadata<br/>始终在上下文<br/>name + description<br/>~100 words]
+    L1 --> L2[Level 2: Body<br/>触发时加载<br/><5000 words]
+    L2 --> L3[Level 3: References<br/>AI按需读取<br/>无限制]
+    
+    Trigger[触发流程<br/>6道过滤关卡]
+    Trigger --> G1[✓ 平台检查 OS]
+    G1 --> G2[✓ 二进制依赖]
+    G2 --> G3[✓ 环境变量]
+    G3 --> G4[✓ 配置路径]
+    G4 --> G5[✓ 手动启用]
+    G5 --> G6[✓ 白名单]
+    G6 --> Active[✅ Skill激活]
+    
+    Step3 -.-> Loading
+    Step5 -.-> Trigger
+    
+    style Start fill:#e1f5e1
+    style Success fill:#e1f5e1
+    style Step1 fill:#fff4e1
+    style Step2 fill:#fff4e1
+    style Step3 fill:#e1f0ff
+    style Step4 fill:#ffe1f0
+    style Step5 fill:#f0e1ff
+    style Step6 fill:#e1ffe1
+    style Scripts fill:#e1f0ff
+    style Refs fill:#fff4e1
+    style Assets fill:#ffe1f0
+    style Package fill:#ccffcc
+    style ShowErrors fill:#ffcccc
